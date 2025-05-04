@@ -1,0 +1,22 @@
+dataset_name: cnn_dailymail
+dataset_version: 3.0.0
+is_in_hugging_face: true
+train_ratio: 98 # %
+valid_ratio: 1 # %
+test_ratio: 1 # %
+max_source_len: 1500
+max_summary_len: 128
+source_key: article
+summary_key: highlights
+prompts:
+  -
+    role: system
+    content: "You are an article summarizer. Summarize the following article briefly."
+  -
+    role: user
+    content: "Article : " # placeholder for full article
+    text_type: source
+  -
+    role: assistant
+    content: "" # placeholder for full article
+    text_type: summary

@@ -1,0 +1,1 @@
+{"base_model": "meta-llama/Llama-3.2-1B-Instruct", "loaded_checkpoint": "saved_models/llama_lora_1b/cnn_dailymail/", "do_sample": false, "num_beams": 1, "length_penalty": 1.0}

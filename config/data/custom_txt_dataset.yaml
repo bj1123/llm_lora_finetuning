@@ -1,0 +1,12 @@
+data_type: txt
+data_path: 'data/sample_data.txt'
+max_source_len: 1500
+max_summary_len: 128
+prompts:
+  -
+    role: system
+    content: "You are an article summarizer. Summarize the following article briefly."
+  -
+    role: user
+    content: "Article : " # placeholder for full article
+    text_type: source
