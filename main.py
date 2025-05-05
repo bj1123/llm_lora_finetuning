@@ -1,15 +1,13 @@
-import pandas as pd
-from transformers import LlamaForCausalLM, AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments, DataCollatorForLanguageModeling, DataCollatorForSeq2Seq, BitsAndBytesConfig
-from peft import LoraConfig, get_peft_model, TaskType, PeftModel
-from datasets import load_dataset
-import torch
+import argparse
+import os
+
+from transformers import AutoTokenizer, Trainer, TrainingArguments
+import huggingface_hub
+
 from src.models.net import *
 from src.utils.dataset import get_dataset, BaseDataSet
-import argparse
-from src.utils.file_handler import read_yaml, maybe_load_lora_adapter, save_generation_result
 from src.utils.evaluate import generate_summary, evaluate_metrics, get_sources
-
-import os
+from src.utils.file_handler import read_yaml, maybe_load_lora_adapter, save_generation_result
 
 
 def get_args():
@@ -18,10 +16,13 @@ def get_args():
     parser.add_argument('--model-config', '-m', type=str)
     parser.add_argument('--data-config', '-d', type=str)
     parser.add_argument('--generate-config', '-g', type=str)
-    parser.add_argument('--output-path', type=str, help='save path for trained models, or generation results.'
+    parser.add_argument('--output-path', type=str, help='Save path for trained models, or generation results.'
                                                         ' If not set, save_name in the config files will be used')
-    parser.add_argument('--pretrained-model', type=str, help='path for pretrained model.'
+    parser.add_argument('--pretrained-model', type=str, help='Path for pretrained model.'
                                                              ' If specified, it overrides model path defined in model-config')
+
+    parser.add_argument('--huggingface-token', type=str, help='Some models require authorization.'
+                                                              'Set proper auth token in order to download those models')
 
     return parser.parse_args()
 
@@ -125,11 +126,14 @@ def evaluate(args):
 
 if __name__ == '__main__':
     args = get_args()
+
+    # login with huggingface token if token is provided
+    if args.huggingface_token:
+        huggingface_hub.login(args.huggingface_token)
+
     if args.mode == 'train':
         train(args)
-
     elif args.mode == 'evaluate':
         evaluate(args)
-
     elif args.mode == 'generate':
         generate(args)
