@@ -28,4 +28,5 @@ Once training is done, you can evaluate model performance. Code above will evalu
 
 `python -m main --mode generate -m config/model/llama_lora_1b.yaml -d config/data/custom_txt_dataset.yaml -g config/generation/beam_search.yaml --output-path data/csv_generated_result --pretrained-model saved_models/llama_lora_1b/cnn_dailymail/`
 
-To 
+To generate summaries with custom dataset, create a new config [Example](./config/data/custom_csv_dataset.yaml) and pass it to the args. 
+Decoding strategy [Generation config](./config/generation/beam_search.yaml) can also be modified.

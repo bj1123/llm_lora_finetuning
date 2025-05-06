@@ -44,8 +44,6 @@ def prepare(args, mode='train'):
     return model_config, data_config, model, dataset
 
 
-
-
 def train(args):
     def get_trainer(model, dataset: BaseDataSet, model_config):
         if args.output_path:
@@ -94,7 +92,6 @@ def generate(args):
         meta.update(generate_config)
         return meta
 
-
     model_config, data_config, model, dataset = prepare(args, 'generation')
     generate_config = read_yaml(args.generate_config)
     checkpoint_path = args.pretrained_model if args.pretrained_model else get_default_model_path(model_config, dataset)
@@ -113,7 +110,6 @@ def generate(args):
     save_generation_result(sources, summaries, generation_metadata_for_logging(), output_path)
 
 
-# evaluate model performance. Default = rouge and bert-score
 def evaluate(args):
     model_config, data_config, model, dataset = prepare(args, 'evaluation')
     # load lora adapter
