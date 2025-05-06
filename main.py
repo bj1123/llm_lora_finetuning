@@ -28,7 +28,7 @@ def get_args():
 
 
 def get_default_model_path(model_config, dataset):
-    return os.path.join('saved_models', model_config.get('save_name'), dataset.config.get('save_name'))
+    return os.path.join('saved_models', model_config.get('save_name', ''), dataset.config.get('save_name', ''))
 
 
 def prepare(args, mode='train'):
@@ -106,12 +106,11 @@ def generate(args):
     if args.output_path:
         output_path = args.output_path
     else:
-        output_path = os.path.join(model_config.get('save_name'),
-                                   data_config.get('save_name'),
-                                   generate_config.get('save_name'))
+        output_path = os.path.join(model_config.get('save_name', ''),
+                                   data_config.get('save_name', ''),
+                                   generate_config.get('save_name', ''))
 
     save_generation_result(sources, summaries, generation_metadata_for_logging(), output_path)
-
 
 
 # evaluate model performance. Default = rouge and bert-score

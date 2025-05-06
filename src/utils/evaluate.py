@@ -1,9 +1,11 @@
 from torch.utils.data import DataLoader
 from src.utils.dataset import BaseDataSet
 from rouge_score import rouge_scorer
-import numpy as np
 import bert_score
 import datetime
+from nltk.translate.bleu_score import modified_precision
+import numpy as np
+
 
 
 def get_target_set(dataset: BaseDataSet, data_split):
@@ -55,6 +57,11 @@ def get_sources(dataset, config):
     return [i[dataset.source_key] for i in target_set]
 
 
+def get_summaries(dataset, config):
+    target_set = get_target_set(dataset, config.get('target_set', 'test'))
+    return [i[dataset.summary_key] for i in target_set]
+
+
 def evaluate_rouge(ground_truths, generated_texts):
     scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
 
@@ -75,20 +82,47 @@ def evaluate_bert_score(ground_truths, generated_texts, lang='en', model_type='r
     return {'bert_score': np.mean(bert_score_f1.tolist())}
 
 
-def evaluate_metrics(model, dataset, config, metrics=['rouge', 'bert_score']):
-    def get_ground_truths():
-        summary_key = dataset.summary_key
-        target_set = get_target_set(dataset, config.get('target_set', 'test'))
-        return [i[summary_key] for i in target_set]
+def ngram_overlaps(sources, summaries, n=4):
+    overlaps = [[] for _ in range(n)]
+    for i in range(1, n + 1):
+        for source, summary in zip(sources, summaries):
+            source_tokens = source.split()
+            summary_tokens = summary.split()
 
+            frac = modified_precision([source_tokens], summary_tokens, i)
+
+            overlaps[i - 1].append(frac.numerator / frac.denominator)
+
+    return {f'{i+1}-gram overlaps': np.mean(overlaps[i]) for i in range(n)}
+
+
+def compression_rate(sources, summaries):
+    res = []
+    for source, summary in zip(sources, summaries):
+        source_tokens = source.split()
+        summary_tokens = summary.split()
+        res.append(len(summary_tokens) / len(source_tokens))
+    return {'compression_rate': np.mean(res)}
+
+
+def evaluate_metrics(model, dataset, config, metrics=['rouge', 'bert_score', 'compression_rate', 'ngram_overlaps']):
+    # To-Do: metrics argument should be passed when it's called
     summaries = generate_summary(model, dataset, config)
-    ground_truths = get_ground_truths()
+    ground_truths = get_summaries(dataset, config)
+    sources = None
+    if 'compression_rate' in metrics or 'ngram_overlaps' in metrics:
+        sources = get_sources(dataset, config)
+
     scores = {}
     for metric in metrics:
         if metric == 'rouge':
             scores.update(evaluate_rouge(ground_truths, summaries))
         elif metric == 'bert_score':
             scores.update(evaluate_bert_score(ground_truths, summaries))
+        elif metric == 'compression_rate':
+            scores.update(compression_rate(sources, summaries))
+        elif metric == 'ngram_overlaps':
+            scores.update(ngram_overlaps(sources, summaries))
 
     return scores
 

@@ -92,7 +92,15 @@ class HuggingFaceHubDataset(BaseDataSet):
 
 class CSVDataset(BaseDataSet):
     def _load_dataset(self):
-        return None, None, Dataset.from_csv(self.config.get('data_path'), column_names=[self.source_key, self.summary_key])
+        train_ratio, val_ratio, test_ratio = self._get_split_ratios()
+        dataset = Dataset.from_csv(self.config.get('data_path'), column_names=[self.source_key, self.summary_key])
+        train_ind = int(len(dataset) * (train_ratio / 100))
+        valid_ind = int(len(dataset) * (val_ratio / 100))
+        test_ind = int(len(dataset) * (test_ratio / 100))
+
+        return dataset.select(range(0, train_ind)), \
+               dataset.select(range(train_ind, valid_ind)), \
+               dataset.select(range(valid_ind, test_ind))
 
 
 class TxtDataset(BaseDataSet):
